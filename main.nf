@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-nextflow.enable.dsl=1
+nextflow.enable.dsl=2
 // If the user uses the --help flag, print the help text below
 params.help = false
 
@@ -70,7 +70,7 @@ process metagenome_assembly {
     publishDir "${output_path}", mode:'copy'
 
     input:
-	  tuple val(sample), val(reads1), val(reads2) from seedfile_ch1
+	  tuple val(sample), val(reads1), val(reads2)
 
     output:
     file "${sample}" into out_ch
@@ -82,4 +82,15 @@ process metagenome_assembly {
     export S3OUTPUTPATH="${output_path}/${sample}"
     run_megahit_mapping_binning.sh
     """
+}
+
+
+seedfile_ch1 = Channel
+  .fromPath(params.seedfile)
+  .ifEmpty { exit 1, "Cannot find the input seedfile" }
+
+workflow {
+
+    seedfile_ch1 | metagenome_assembly
+
 }
