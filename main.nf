@@ -57,8 +57,6 @@ def output_path = "${params.output_path}"
  	.map{ row -> tuple(row.sample, row.reads1, row.reads2)}
  	.set { seedfile_ch }
 
-seedfile_ch.into { seedfile_ch1; seedfile_ch2 }
-
 /*
  * Run megahit preprocessing
  */
@@ -91,6 +89,6 @@ seedfile_ch1 = Channel
 
 workflow {
 
-    seedfile_ch1 | metagenome_assembly
+    seedfile_ch | metagenome_assembly
 
 }
