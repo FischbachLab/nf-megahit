@@ -71,7 +71,7 @@ process metagenome_assembly {
 	  tuple val(sample), val(reads1), val(reads2)
 
     output:
-    file "${sample}"
+    //file "${sample}"
 
     script:
     """
