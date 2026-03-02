@@ -38,8 +38,8 @@ mkdir -p  "${QUAST_OUTPUT}" "${LOCAL_TMP}" "${MAPPING_OUTPUT}" "${INDEX_OUTPUT}"
 trap '{ rm -rf ${OUTPUTDIR} ; exit 255; }' 1
 
 # Copy fastq.gz files from S3, only 2 files per sample
-aws s3 cp --quiet ${fastq1} ${RAW_FASTQ}/read1.fastq.gz
-aws s3 cp --quiet ${fastq2} ${RAW_FASTQ}/read2.fastq.gz
+mv ${fastq1} ${RAW_FASTQ}/read1.fastq.gz
+mv ${fastq2} ${RAW_FASTQ}/read2.fastq.gz
 
 ## Run megahit assembly
 megahit \
@@ -96,7 +96,12 @@ samtools flagstat "${MAPPING_OUTPUT}/assembly_aligned.sorted.bam" > "${LOG_DIR}/
 # Summarize BAM depth
 jgi_summarize_bam_contig_depths --outputDepth "${LOG_DIR}/contig_depth.txt" "${MAPPING_OUTPUT}/assembly_aligned.sorted.bam" | tee -a ${LOG_DIR}/depth.txt
 # Bin Contigs
-metabat2 -i "${RAW_FASTQ}/assembly.fasta" -a "${LOG_DIR}/contig_depth.txt" -o "${BINNING_OUTPUT}/bin" -v --seed 42 | tee -a ${LOG_DIR}/metabat2.txt
+metabat2 -i "${RAW_FASTQ}/assembly.fasta" -a "${LOG_DIR}/contig_depth.txt" -o "${BINNING_OUTPUT}/${SAMPLE_NAME}_bin" -v --seed 42 | tee -a ${LOG_DIR}/metabat2.txt
+
+# change the bin names
+#for f in ${BINNING_OUTPUT}/*.fa; do
+#  mv "$f" "${BINNING_OUTPUT}/${SAMPLE_NAME}_$(basename $f)"
+#done
 # Evaluate Bins - Need to install database https://data.ace.uq.edu.au/public/CheckM_databases/
 #  lineage_wf   -> Runs tree, lineage_set, analyze, qa
 #timem checkm lineage_wf -t ${coreNum} -x fa -f "${STAT_OUTPUT}/checkm_output.txt" ${BINNING_OUTPUT} ${STAT_OUTPUT} | tee -a ${LOG_DIR}/checkm.txt

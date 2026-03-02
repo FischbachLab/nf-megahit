@@ -9,7 +9,7 @@ def helpMessage() {
     Run Megahit metagenome assembly pipeline with bowtie2 mapping and metabat2 binning
 
     Required Arguments:
-      --seedfile      file      a file containing sample name, reads1 and reads2
+      --seedfile      file      a file containing sample name, read1 and read2
       --output_path   path      output a s3 path
 
     Options:
@@ -53,8 +53,8 @@ def output_path = "${params.output_path}"
  Channel
  	.fromPath(params.seedfile)
  	.ifEmpty { exit 1, "Cannot find any seed file matching: ${params.seedfile}." }
-  .splitCsv(header: ['sample', 'reads1', 'reads2'], sep: ',', skip: 1)
- 	.map{ row -> tuple(row.sample, row.reads1, row.reads2)}
+  .splitCsv(header: ['sample', 'read1', 'read2'], sep: ',', skip: 1)
+ 	.map{ row -> tuple(row.sample, row.read1, row.read2)}
  	.set { seedfile_ch }
 
 /*
@@ -68,15 +68,16 @@ process metagenome_assembly {
     publishDir "${output_path}", mode:'copy'
 
     input:
-	  tuple val(sample), val(reads1), val(reads2)
+	  tuple val(sample), path(read1), path(read2)
 
     output:
     //file "${sample}"
 
     script:
     """
-    export fastq1="${reads1}"
-    export fastq2="${reads2}"
+    export fastq1="${read1}"
+    export fastq2="${read2}"
+    export SAMPLE_NAME="${sample}"
     export S3OUTPUTPATH="${output_path}/${sample}"
     run_megahit_mapping_binning.sh
     """
